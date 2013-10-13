@@ -1,53 +1,59 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <handbook.h>
+#include <assert.h>
+#include "handbook.h"
 
-struct handbook {
-    char fio[20];
-    int age;
-    struct handbook *next;
+struct Node {
+    struct Record record;
+    struct Node *next;
 };
+
+struct List {
+    struct Node *root;
+};
+
+struct List *list_create()
+{
+    struct List *list;
+
+    list = malloc(sizeof(struct List));
+    list->root = NULL;
+
+    return list;
+}
 
 /*
  *Add new element in a list with sorting. Function take a pointer to pointer to top of the list.
 */
-void add (struct handbook** beg)
+void list_add (struct List *list, struct Record *record)
 {
-    struct handbook *new_el;
-    struct handbook *new_next = NULL;
-    struct handbook *cur;
+    struct Node *new_el;
+    struct Node *new_next = NULL;
+    struct Node *cur;
 
-    new_el = malloc(sizeof(struct handbook));
+    new_el = malloc(sizeof(struct Node));
 
-    if(!new_el) {
-        printf("Failed malloc\n");
-        return;
-    }
+    assert(new_el && "Memory failure");
 
     new_el->next = NULL;
 
-    printf("Enter FIO: \n");
-    scanf("%s", &new_el->fio[0]);
-    printf("Enter age: \n");
-    scanf("%d", &new_el->age);
+    new_el->record = *record;
 
-    if (*beg == NULL) {
-        *beg = new_el;
-        (*beg)->next = NULL;
+    if (list->root == NULL) {
+        list->root = new_el;
         return;
     }
 
-    if ((*beg)->age > new_el->age) {
-        new_el->next = *beg;
-        *beg = new_el;
-
+    if (list->root->record.age > new_el->record.age) {
+        new_el->next = list->root;
+        list->root = new_el;
         return;
     }
 
-    cur = *beg;
+    cur = list->root;
 
-    while (cur->next != NULL && new_el->age > cur->age)
+    while (cur->next != NULL && new_el->record.age > cur->record.age)
         cur = cur->next;
 
     new_next = cur->next;
@@ -55,61 +61,57 @@ void add (struct handbook** beg)
     new_el->next = new_next;
 }
 
-/*
- *Display the list of names. Function take a pointer to top of the list.
-*/
-void display(struct handbook *start)
-{
-    if (!start) {
-        printf("Bad param 'start'\n");
-
-        return;
-    }
-    while(start) {
-        printf("********\n");
-        printf("FIO: %s\n", start->fio);
-        printf("Age: %d\n", start->age);
-
-        start = start->next;
-    }
-}
 
 /*
  *Search an element by name. Function take a pointer to pointer to top of the list.
 */
-void search_by_name(struct handbook **beg)
+struct Record *list_search_by_name(struct List *list, const char *name)
 {
-    struct handbook *s_el = malloc(sizeof(struct handbook));
-    struct handbook *now;
-
-    now = *beg;
-    printf("Enter a name. \n");
-    scanf("%s", s_el->fio);
-
-    while (strcmp(now->fio, s_el->fio))
+    assert(list && "list should not be null");
+    struct Node *now;
+    now = list->root;
+    while (now && strcmp(now->record.fio, name))
         now = now->next;
-
-    printf("Age of this user is %d",now->age);
-    printf("\n");
+    return now ? &now->record : NULL;
 }
 
 /*
  *Search an element by age. Function take a pointer to pointer to top of the list.
 */
-void search_by_age (struct handbook **beg)
+struct Record *list_search_by_age(struct List *list, int age)
 {
-    int s_el;
-    struct handbook *now;
-
-    now = *beg;
-    printf("Enter an age. \n");
-    scanf("%d", &s_el);
-
-    while (now->age != s_el)
+    assert(list && "list should not be null");
+    struct Node *now;
+    now = list->root;
+    while (now && now->record.age != age)
         now = now->next;
+    return now ? &now->record : NULL;
+}
 
-    printf("Name of this user is %s",now->fio);
-    printf("\n");
+/*
+ *Display the list of names. Function take a pointer to top of the list.
+*/
+void list_display(struct List *list)
+{
+    assert(list && "list should not be null");
+    struct Node *now;
+
+    now = list->root;
+    if (!now) {
+        printf("This list is empty\n");
+        return;
+    }
+    while(now) {
+        record_display(&now->record);
+        now = now->next;
+    }
 }
 
 
+void record_display(struct Record *record)
+{
+    assert(record && "null record!");
+    printf("********\n");
+    printf("FIO: %s\n", record->fio);
+    printf("Age: %d\n", record->age);
+}
