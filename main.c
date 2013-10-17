@@ -5,7 +5,9 @@
 
 #include "minunit.h"
 
-// tests add 2 records and search by name and by age
+/*
+ *Tests add 2 records and search by name and by age
+ */
 static char *simple_test_1()
 {
     struct List *list;
@@ -36,13 +38,44 @@ static char *simple_test_1()
     return 0;
 }
 
-// todo: write few more tests
-// check sort order
-// add few elements with same name but different age
-// on search by name you'll get record with smallest age
+/*
+ *Tests add a few records with the same name and different age
+ */
+static char *simple_test_2()
+{
+    struct List *list;
+    struct Record record;
+    struct Record *result_record;
+
+    list = list_create();
+
+    strcpy(record.fio, "Ivan");
+    record.age = 33;
+    list_add(list, &record);
+
+    strcpy(record.fio, "Vasya");
+    record.age = 42;
+    list_add(list, &record);
+
+    strcpy(record.fio, "Kirill");
+    record.age = 33;
+    list_add(list, &record);
+
+    strcpy(record.fio, "Vasya");
+    record.age = 33;
+    list_add(list, &record);
+
+    result_record = list_search_by_name(list, "Vasya");
+    mu_assert("error, record_not_found", result_record != NULL);
+    mu_assert("error, wrong age", result_record->age == 33);
+
+    return 0;
+
+}
 
 static char * all_tests() {
     mu_run_test(simple_test_1);
+    mu_run_test(simple_test_2);
     return 0;
 }
 
